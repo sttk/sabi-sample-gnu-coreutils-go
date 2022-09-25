@@ -1,0 +1,9 @@
+#OS generating files
+.DS_Store
+Thumbs.db
+
+# Binary
+bin/
+
+# Coverage
+coverage/
