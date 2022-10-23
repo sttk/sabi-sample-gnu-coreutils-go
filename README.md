@@ -2,7 +2,7 @@
 
 This project is to develops sample implementations using sabi framework.
 
-This is a private project to verify usability of sabi framework for command line program.
+This is a private project to verify usability of sabi framework for command line program, and this target platform is only macOS.
 
 
 ## License
