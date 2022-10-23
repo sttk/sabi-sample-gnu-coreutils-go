@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/stretchr/testify v1.8.0
-	github.com/sttk-go/sabi v0.0.0-20220924164422-0084853b8795
+	github.com/sttk-go/sabi v0.0.0-20221023154856-0043d0b62c35
 )
 
 require (
