@@ -5,15 +5,20 @@ import (
 	"github.com/sttk-go/sabi-sample-gnu-coreutils/lib"
 )
 
+func init() {
+	sabi.AddGlobalConnCfg("ttyname", lib.NewTtyConnCfg())
+	sabi.SealGlobalConnCfgs()
+}
+
 func newProc() sabi.Proc[TtyDax] {
 	base := sabi.NewConnBase()
 	dax := struct {
 		argDax
-		lib.TtyDax
+		ttynameDax
 		consoleDax
 	}{
 		argDax:     newArgDax(),
-		TtyDax:     lib.NewTtyDax(),
+		ttynameDax: newTtynameDax(base),
 		consoleDax: newConsoleDax(),
 	}
 	return sabi.NewProc[TtyDax](base, dax)

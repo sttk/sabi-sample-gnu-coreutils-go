@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/sttk-go/sabi"
-	"os"
 )
 
 const (
@@ -21,9 +20,11 @@ type /* error reasons */ (
 
 type TtyDax interface {
 	GetMode() (mode int, err sabi.Err)
-	GetTtyName(fd int) (ttyname string, err sabi.Err)
-	PrintModeError(err sabi.Err) sabi.Err
-	PrintTtyName(ttyname string) sabi.Err
+	GetStdinTtyname() (ttyname string, err sabi.Err)
+	PrintTtyname(ttyname string) sabi.Err
+	PrintNotTty(err sabi.Err)
+	PrintTtyError(err sabi.Err)
+	PrintModeError(err sabi.Err)
 	PrintVersion() sabi.Err
 	PrintHelp() sabi.Err
 }
@@ -37,17 +38,21 @@ func ttyLogic(dax TtyDax) sabi.Err {
 
 	switch mode {
 	case MODE_SILENT:
-		fd := int(os.Stdin.Fd())
-		_, err := dax.GetTtyName(fd)
+		_, err := dax.GetStdinTtyname()
 		return err
 
 	case MODE_NORMAL:
-		fd := int(os.Stdin.Fd())
-		ttyname, err := dax.GetTtyName(fd)
-		if !err.IsOk() {
+		ttyname, err := dax.GetStdinTtyname()
+		switch err.Reason().(type) {
+		case sabi.NoError:
+			return dax.PrintTtyname(ttyname)
+		case StdinIsNotTty:
+			dax.PrintNotTty(err)
+			return err
+		default:
+			dax.PrintTtyError(err)
 			return err
 		}
-		return dax.PrintTtyName(ttyname)
 
 	case MODE_VERSION:
 		return dax.PrintVersion()

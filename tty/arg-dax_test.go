@@ -93,7 +93,7 @@ func TestArgDax_GetMode_if_args_are_version_and_another(t *testing.T) {
 func TestArgDax_GetMode_if_arg_is_help(t *testing.T) {
 	defer ResetArgs()
 
-	os.Args = make([]string, 3)
+	os.Args = make([]string, 2)
 	os.Args[0] = args[0]
 	os.Args[1] = "--help"
 

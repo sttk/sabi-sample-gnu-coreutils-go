@@ -41,7 +41,7 @@ Print the file name of the terminal connected to standard input.
 	return sabi.Ok()
 }
 
-func (dax consoleDax) PrintTtyName(ttyname string) sabi.Err {
+func (dax consoleDax) PrintTtyname(ttyname string) sabi.Err {
 	_, err := fmt.Println(ttyname)
 	if err != nil {
 		return sabi.ErrBy(FailToPrint{})
@@ -49,10 +49,15 @@ func (dax consoleDax) PrintTtyName(ttyname string) sabi.Err {
 	return sabi.Ok()
 }
 
-func (dax consoleDax) PrintModeError(err sabi.Err) sabi.Err {
-	_, e := fmt.Printf("tty: illegal option: %v\n", err.Get("Option"))
-	if e != nil {
-		return sabi.ErrBy(FailToPrint{})
-	}
-	return dax.PrintHelp()
+func (dax consoleDax) PrintNotTty(err sabi.Err) {
+	fmt.Println("not a tty")
+}
+
+func (dax consoleDax) PrintTtyError(err sabi.Err) {
+	fmt.Println("tty: fail to get ttyname")
+}
+
+func (dax consoleDax) PrintModeError(err sabi.Err) {
+	fmt.Printf("tty: illegal option: %v\n", err.Get("Option"))
+	dax.PrintHelp()
 }

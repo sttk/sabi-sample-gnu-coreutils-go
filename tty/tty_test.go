@@ -23,19 +23,32 @@ func (dax mapDax) GetMode() (int, sabi.Err) {
 	}
 }
 
-func (dax mapDax) GetTtyName(fd int) (string, sabi.Err) {
-	if dax.m["error"] == "notty" {
-		return "", sabi.ErrBy(StdinIsNotTty{})
+type TtyError struct{}
+
+func (dax mapDax) GetStdinTtyname() (string, sabi.Err) {
+	switch dax.m["error"] {
+	case "notty":
+		return "not a tty", sabi.ErrBy(StdinIsNotTty{})
+	case "ttyError":
+		return "tty error", sabi.ErrBy(TtyError{})
+	default:
+		return dax.m["ttyname"].(string), sabi.Ok()
 	}
-	return dax.m["ttyname"].(string), sabi.Ok()
 }
 
-func (dax mapDax) PrintModeError(err sabi.Err) sabi.Err {
+func (dax mapDax) PrintNotTty(err sabi.Err) {
 	dax.m["print"] = err
-	return sabi.Ok()
 }
 
-func (dax mapDax) PrintTtyName(ttyname string) sabi.Err {
+func (dax mapDax) PrintTtyError(err sabi.Err) {
+	dax.m["print"] = err
+}
+
+func (dax mapDax) PrintModeError(err sabi.Err) {
+	dax.m["print"] = err
+}
+
+func (dax mapDax) PrintTtyname(ttyname string) sabi.Err {
 	if dax.m["error"] == "failToPrint" {
 		return sabi.ErrBy(FailToPrint{})
 	}
@@ -133,7 +146,7 @@ func TestTtyLogic_if_mode_is_normal_but_notty(t *testing.T) {
 	proc := newTestProc(m)
 	err := proc.RunTxn(ttyLogic)
 
-	assert.Nil(t, m["print"])
+	assert.Equal(t, m["print"], err)
 	switch err.Reason().(type) {
 	case StdinIsNotTty:
 	default:
@@ -152,6 +165,38 @@ func TestTtyLogic_if_mode_is_silent_but_notty(t *testing.T) {
 	assert.Nil(t, m["print"])
 	switch err.Reason().(type) {
 	case StdinIsNotTty:
+	default:
+		assert.Fail(t, err.Error())
+	}
+}
+
+func TestTtyLogic_if_mode_is_normal_but_tty_error(t *testing.T) {
+	m := make(map[string]any)
+	m["mode"] = MODE_NORMAL
+	m["error"] = "ttyError"
+
+	proc := newTestProc(m)
+	err := proc.RunTxn(ttyLogic)
+
+	assert.Equal(t, m["print"], err)
+	switch err.Reason().(type) {
+	case TtyError:
+	default:
+		assert.Fail(t, err.Error())
+	}
+}
+
+func TestTtyLogic_if_mode_is_silent_but_tty_error(t *testing.T) {
+	m := make(map[string]any)
+	m["mode"] = MODE_SILENT
+	m["error"] = "ttyError"
+
+	proc := newTestProc(m)
+	err := proc.RunTxn(ttyLogic)
+
+	assert.Nil(t, m["print"])
+	switch err.Reason().(type) {
+	case TtyError:
 	default:
 		assert.Fail(t, err.Error())
 	}
