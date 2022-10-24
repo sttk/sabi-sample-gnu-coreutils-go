@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/sttk-go/sabi"
 	"github.com/sttk-go/sabi-sample-gnu-coreutils/lib"
+	"os"
 )
 
 func init() {
@@ -25,5 +26,16 @@ func newProc() sabi.Proc[TtyDax] {
 }
 
 func main() {
-	newProc().RunTxn(ttyLogic)
+	err := newProc().RunTxn(ttyLogic)
+	switch err.Reason().(type) {
+	case InvalidOption:
+		os.Exit(2)
+	case StdinIsNotTty:
+		os.Exit(1)
+	case FailToPrint:
+		os.Exit(3)
+	default:
+		os.Exit(9)
+	case sabi.NoError:
+	}
 }
