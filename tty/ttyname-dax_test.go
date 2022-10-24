@@ -17,9 +17,9 @@ func TestTtynameDax_getTtyConn(t *testing.T) {
 	conn, err := dax.getTtyConn("ttyname")
 	assert.True(t, err.IsOk())
 	switch ((interface{})(conn)).(type) {
-	case *lib.TtyConn:
 	default:
 		assert.Fail(t, fmt.Sprintf("%v", reflect.TypeOf(conn)))
+	case *lib.TtyConn:
 	}
 }
 
@@ -30,9 +30,9 @@ func TestTtynameDax_getTtyConn_ConnCfgIsNotFound(t *testing.T) {
 	conn, err := dax.getTtyConn("ttt")
 	assert.Nil(t, conn)
 	switch err.Reason().(type) {
-	case sabi.ConnCfgIsNotFound:
 	default:
 		assert.Fail(t, err.Error())
+	case sabi.ConnCfgIsNotFound:
 	}
 }
 
@@ -45,8 +45,8 @@ func TestTtyDax_GetStdioTtyname(t *testing.T) {
 	ttyname, err := dax.GetStdinTtyname()
 	assert.Equal(t, ttyname, "")
 	switch err.Reason().(type) {
-	case StdinIsNotTty:
 	default:
 		assert.Fail(t, err.Error())
+	case StdinIsNotTty:
 	}
 }

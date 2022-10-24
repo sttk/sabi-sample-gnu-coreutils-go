@@ -148,9 +148,9 @@ func TestTtyLogic_if_mode_is_normal_but_notty(t *testing.T) {
 
 	assert.Equal(t, m["print"], err)
 	switch err.Reason().(type) {
-	case StdinIsNotTty:
 	default:
 		assert.Fail(t, err.Error())
+	case StdinIsNotTty:
 	}
 }
 
@@ -164,9 +164,9 @@ func TestTtyLogic_if_mode_is_silent_but_notty(t *testing.T) {
 
 	assert.Nil(t, m["print"])
 	switch err.Reason().(type) {
-	case StdinIsNotTty:
 	default:
 		assert.Fail(t, err.Error())
+	case StdinIsNotTty:
 	}
 }
 
@@ -180,9 +180,9 @@ func TestTtyLogic_if_mode_is_normal_but_tty_error(t *testing.T) {
 
 	assert.Equal(t, m["print"], err)
 	switch err.Reason().(type) {
-	case TtyError:
 	default:
 		assert.Fail(t, err.Error())
+	case TtyError:
 	}
 }
 
@@ -196,9 +196,9 @@ func TestTtyLogic_if_mode_is_silent_but_tty_error(t *testing.T) {
 
 	assert.Nil(t, m["print"])
 	switch err.Reason().(type) {
-	case TtyError:
 	default:
 		assert.Fail(t, err.Error())
+	case TtyError:
 	}
 }
 
@@ -213,8 +213,8 @@ func TestTtyLogic_if_mode_is_normal_but_fail_to_write(t *testing.T) {
 
 	assert.Nil(t, m["print"])
 	switch err.Reason().(type) {
-	case FailToPrint:
 	default:
 		assert.Fail(t, err.Error())
+	case FailToPrint:
 	}
 }
