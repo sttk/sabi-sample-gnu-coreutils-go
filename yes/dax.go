@@ -46,9 +46,9 @@ func (dax consoleDax) printYes() {
 	}
 }
 
-func (dax consoleDax) printWord() {
+func (dax consoleDax) printWord(word string) {
 	for {
-		fmt.Println(os.Args[1])
+		fmt.Println(word)
 	}
 }
 
