@@ -23,8 +23,8 @@ func (dax mapDax) getWord() string {
 func (dax mapDax) printYes() {
 	dax.m["print"] = "y"
 }
-func (dax mapDax) printWord() {
-	dax.m["print"] = dax.m["word"]
+func (dax mapDax) printWord(word string) {
+	dax.m["print"] = word
 }
 func (dax mapDax) printVersion() {
 	dax.m["print"] = "VERSION"

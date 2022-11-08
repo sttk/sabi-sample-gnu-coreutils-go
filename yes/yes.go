@@ -15,7 +15,7 @@ type yesDax interface {
 	getMode() int
 	getWord() string
 	printYes()
-	printWord()
+	printWord(word string)
 	printVersion()
 	printHelp()
 }
@@ -25,7 +25,7 @@ func yesLogic(dax yesDax) sabi.Err {
 	case mode_noword:
 		dax.printYes()
 	case mode_word:
-		dax.printWord()
+		dax.printWord(dax.getWord())
 	case mode_version:
 		dax.printVersion()
 	default:
