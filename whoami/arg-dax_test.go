@@ -12,50 +12,50 @@ func ResetArgs() {
 	os.Args = args
 }
 
-func TestArgDax_getMode_noArg(t *testing.T) {
+func TestArgDax_GetMode_noArg(t *testing.T) {
 	defer ResetArgs()
 
 	os.Args = make([]string, 1)
 	os.Args[0] = args[0]
 
-	dax := newArgDax()
-	assert.Equal(t, dax.getMode(), mode_normal)
+	dax := NewArgDax()
+	assert.Equal(t, dax.GetMode(), MODE_NORMAL)
 }
 
-func TestArgDax_getMode_oneArg_help(t *testing.T) {
+func TestArgDax_GetMode_oneArg_help(t *testing.T) {
 	defer ResetArgs()
 
 	os.Args = make([]string, 2)
 	os.Args[0] = args[0]
 	os.Args[1] = "--help"
 
-	dax := newArgDax()
-	assert.Equal(t, dax.getMode(), mode_help)
+	dax := NewArgDax()
+	assert.Equal(t, dax.GetMode(), MODE_HELP)
 }
 
-func TestArgDax_getMode_oneArg_version(t *testing.T) {
+func TestArgDax_GetMode_oneArg_version(t *testing.T) {
 	defer ResetArgs()
 
 	os.Args = make([]string, 2)
 	os.Args[0] = args[0]
 	os.Args[1] = "--version"
 
-	dax := newArgDax()
-	assert.Equal(t, dax.getMode(), mode_version)
+	dax := NewArgDax()
+	assert.Equal(t, dax.GetMode(), MODE_VERSION)
 }
 
-func TestArgDax_getMode_oneArg_normal(t *testing.T) {
+func TestArgDax_GetMode_oneArg_normal(t *testing.T) {
 	defer ResetArgs()
 
 	os.Args = make([]string, 2)
 	os.Args[0] = args[0]
 	os.Args[1] = "abc"
 
-	dax := newArgDax()
-	assert.Equal(t, dax.getMode(), mode_normal)
+	dax := NewArgDax()
+	assert.Equal(t, dax.GetMode(), MODE_NORMAL)
 }
 
-func TestArgDax_getMode_twoArgs_help(t *testing.T) {
+func TestArgDax_GetMode_twoArgs_help(t *testing.T) {
 	defer ResetArgs()
 
 	os.Args = make([]string, 3)
@@ -63,11 +63,11 @@ func TestArgDax_getMode_twoArgs_help(t *testing.T) {
 	os.Args[1] = "--help"
 	os.Args[2] = "--version"
 
-	dax := newArgDax()
-	assert.Equal(t, dax.getMode(), mode_help)
+	dax := NewArgDax()
+	assert.Equal(t, dax.GetMode(), MODE_HELP)
 }
 
-func TestArgDax_getMode_twoArgs_version(t *testing.T) {
+func TestArgDax_GetMode_twoArgs_version(t *testing.T) {
 	defer ResetArgs()
 
 	os.Args = make([]string, 3)
@@ -75,18 +75,17 @@ func TestArgDax_getMode_twoArgs_version(t *testing.T) {
 	os.Args[1] = "--version"
 	os.Args[2] = "--help"
 
-	dax := newArgDax()
-	assert.Equal(t, dax.getMode(), mode_version)
+	dax := NewArgDax()
+	assert.Equal(t, dax.GetMode(), MODE_VERSION)
 }
 
-func TestArgDax_getMode_twoArgs_normal(t *testing.T) {
+func TestArgDax_GetMode_twoArgs_normal(t *testing.T) {
 	defer ResetArgs()
-
 	os.Args = make([]string, 3)
 	os.Args[0] = args[0]
 	os.Args[1] = "--flag"
 	os.Args[2] = "abc"
 
-	dax := newArgDax()
-	assert.Equal(t, dax.getMode(), mode_normal)
+	dax := NewArgDax()
+	assert.Equal(t, dax.GetMode(), MODE_NORMAL)
 }

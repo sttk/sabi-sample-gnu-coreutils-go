@@ -5,31 +5,31 @@ import (
 )
 
 const (
-	mode_noword = iota
-	mode_word
-	mode_help
-	mode_version
+	MODE_NOWORD = iota
+	MODE_WORD
+	MODE_HELP
+	MODE_VERSION
 )
 
-type yesDax interface {
-	getMode() int
-	getWord() string
-	printYes()
-	printWord(word string)
-	printVersion()
-	printHelp()
+type YesDax interface {
+	GetMode() int
+	GetWord() string
+	PrintYes()
+	PrintWord(word string)
+	PrintVersion()
+	PrintHelp()
 }
 
-func yesLogic(dax yesDax) sabi.Err {
-	switch dax.getMode() {
-	case mode_noword:
-		dax.printYes()
-	case mode_word:
-		dax.printWord(dax.getWord())
-	case mode_version:
-		dax.printVersion()
+func YesLogic(dax YesDax) sabi.Err {
+	switch dax.GetMode() {
+	case MODE_NOWORD:
+		dax.PrintYes()
+	case MODE_WORD:
+		dax.PrintWord(dax.GetWord())
+	case MODE_VERSION:
+		dax.PrintVersion()
 	default:
-		dax.printHelp()
+		dax.PrintHelp()
 	}
 	return sabi.Ok()
 }

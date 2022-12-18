@@ -14,70 +14,68 @@ func newMapDax(m map[string]any) mapDax {
 	return mapDax{m: m}
 }
 
-func (dax mapDax) getMode() int {
+func (dax mapDax) GetMode() int {
 	return dax.m["mode"].(int)
 }
 
-func (dax mapDax) getEffectiveUserId() string {
+func (dax mapDax) GetEffectiveUserId() string {
 	return dax.m["euid"].(string)
 }
 
-func (dax mapDax) getUsernameByUserId(uid string) string {
+func (dax mapDax) GetUserNameByUserId(uid string) string {
 	return dax.m["username"].(map[string]string)[uid]
 }
 
-func (dax mapDax) printUsername(username string) {
-	dax.m["print"] = username
+func (dax mapDax) PrintUserName(userName string) {
+	dax.m["print"] = userName
 }
 
-func (dax mapDax) printVersion() {
-	dax.m["print"] = "VERSION"
-}
-
-func (dax mapDax) printHelp() {
+func (dax mapDax) PrintHelp() {
 	dax.m["print"] = "HELP"
 }
 
-func newTestProc(m map[string]any) sabi.Proc[whoamiDax] {
-	base := sabi.NewConnBase()
-	dax := struct {
-		mapDax
-	}{
-		mapDax: newMapDax(m),
-	}
-	return sabi.NewProc[whoamiDax](base, dax)
+func (dax mapDax) PrintVersion() {
+	dax.m["print"] = "VERSION"
+}
+
+func newTestProc(m map[string]any) sabi.Proc[WhoamiDax] {
+	base := sabi.NewDaxBase()
+	dax := newMapDax(m)
+	return sabi.NewProc[WhoamiDax](base, dax)
 }
 
 func TestWhoamiLogic_if_mode_is_version(t *testing.T) {
 	m := make(map[string]any)
-	m["mode"] = mode_version
+	m["mode"] = MODE_VERSION
 
 	proc := newTestProc(m)
-	proc.RunTxn(whoamiLogic)
+	proc.RunTxn(WhoamiLogic)
 
 	assert.Equal(t, m["print"], "VERSION")
 }
 
 func TestWhoamiLogic_if_mode_is_help(t *testing.T) {
 	m := make(map[string]any)
-	m["mode"] = mode_help
+	m["mode"] = MODE_HELP
 
 	proc := newTestProc(m)
-	proc.RunTxn(whoamiLogic)
+	proc.RunTxn(WhoamiLogic)
 
 	assert.Equal(t, m["print"], "HELP")
 }
 
 func TestWhoamiLogic_if_mode_is_normal(t *testing.T) {
+	users := make(map[string]string)
+	users["111"] = "foo"
+	users["123"] = "bar"
+
 	m := make(map[string]any)
-	m["mode"] = mode_normal
+	m["mode"] = MODE_NORMAL
 	m["euid"] = "123"
-	m["username"] = make(map[string]string)
-	m["username"].(map[string]string)["111"] = "foo"
-	m["username"].(map[string]string)["123"] = "bar"
+	m["username"] = users
 
 	proc := newTestProc(m)
-	proc.RunTxn(whoamiLogic)
+	proc.RunTxn(WhoamiLogic)
 
 	assert.Equal(t, m["print"], "bar")
 }

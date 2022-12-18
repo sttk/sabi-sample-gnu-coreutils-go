@@ -4,21 +4,21 @@ import (
 	"os"
 )
 
-type argDax struct {
+type ArgDax struct {
 }
 
-func newArgDax() argDax {
-	return argDax{}
+func NewArgDax() ArgDax {
+	return ArgDax{}
 }
 
-func (dax argDax) getMode() int {
+func (dax ArgDax) GetMode() int {
 	for _, arg := range os.Args[1:] {
 		switch arg {
 		case "--version":
-			return mode_version
+			return MODE_VERSION
 		case "--help":
-			return mode_help
+			return MODE_HELP
 		}
 	}
-	return mode_normal
+	return MODE_NORMAL
 }

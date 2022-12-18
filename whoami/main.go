@@ -4,20 +4,21 @@ import (
 	"github.com/sttk-go/sabi"
 )
 
-func newProc() sabi.Proc[whoamiDax] {
-	base := sabi.NewConnBase()
-	dax := struct {
-		argDax
-		osDax
-		consoleDax
-	}{
-		argDax:     newArgDax(),
-		osDax:      newOsDax(),
-		consoleDax: newConsoleDax(),
-	}
-	return sabi.NewProc[whoamiDax](base, dax)
+func main() {
+	proc := newProc()
+	proc.RunTxn(WhoamiLogic)
 }
 
-func main() {
-	newProc().RunTxn(whoamiLogic)
+func newProc() sabi.Proc[WhoamiDax] {
+	base := sabi.NewDaxBase()
+	dax := struct {
+		ArgDax
+		OsDax
+		ConsoleDax
+	}{
+		ArgDax:     NewArgDax(),
+		OsDax:      NewOsDax(),
+		ConsoleDax: NewConsoleDax(),
+	}
+	return sabi.NewProc[WhoamiDax](base, dax)
 }
