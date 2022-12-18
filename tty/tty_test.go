@@ -199,7 +199,7 @@ func TestTtyLogic_if_mode_is_silent_but_tty_error(t *testing.T) {
 	}
 }
 
-func TestTtyLogic_if_mode_is_silent_but_fail_to_write(t *testing.T) {
+func TestTtyLogic_if_mode_is_normal_but_fail_to_write(t *testing.T) {
 	m := make(map[string]any)
 	m["mode"] = MODE_NORMAL
 	m["ttyname"] = "/dev/tty001"
