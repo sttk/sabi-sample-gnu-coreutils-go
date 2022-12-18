@@ -4,19 +4,19 @@ import (
 	"github.com/sttk-go/sabi"
 )
 
-func newProc() sabi.Proc[yesDax] {
-	base := sabi.NewConnBase()
-	dax := struct {
-		argDax
-		consoleDax
-	}{
-		argDax:     newArgDax(),
-		consoleDax: newConsoleDax(),
-	}
-	return sabi.NewProc[yesDax](base, dax)
-}
-
 func main() {
 	proc := newProc()
-	proc.RunTxn(yesLogic)
+	proc.RunTxn(YesLogic)
+}
+
+func newProc() sabi.Proc[YesDax] {
+	base := sabi.NewDaxBase()
+	dax := struct {
+		ArgDax
+		ConsoleDax
+	}{
+		ArgDax:     NewArgDax(),
+		ConsoleDax: NewConsoleDax(),
+	}
+	return sabi.NewProc[YesDax](base, dax)
 }

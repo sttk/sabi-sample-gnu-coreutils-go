@@ -5,14 +5,14 @@ import (
 	"testing"
 )
 
-func TestOsDax_getEffectiveUserId(t *testing.T) {
-	dax := newOsDax()
-	assert.NotEqual(t, dax.getEffectiveUserId(), "")
+func TestOsDax_GetEffectiveUserId(t *testing.T) {
+	dax := NewOsDax()
+	assert.NotEqual(t, dax.GetEffectiveUserId(), "")
 }
 
-func TestOsDax_getUsernameByUserId(t *testing.T) {
-	dax := newOsDax()
-	euid := dax.getEffectiveUserId()
-	assert.NotEqual(t, dax.getUsernameByUserId(euid), "")
-	assert.Equal(t, dax.getUsernameByUserId("xxx"), "")
+func TestOsDax_GetUserNameByUserId(t *testing.T) {
+	dax := NewOsDax()
+	euid := dax.GetEffectiveUserId()
+	assert.NotEqual(t, dax.GetUserNameByUserId(euid), "")
+	assert.Equal(t, dax.GetUserNameByUserId("xxx"), "")
 }

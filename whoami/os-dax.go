@@ -6,18 +6,18 @@ import (
 	"strconv"
 )
 
-type osDax struct {
+type OsDax struct {
 }
 
-func newOsDax() osDax {
-	return osDax{}
+func NewOsDax() OsDax {
+	return OsDax{}
 }
 
-func (dax osDax) getEffectiveUserId() string {
+func (dax OsDax) GetEffectiveUserId() string {
 	return strconv.Itoa(os.Geteuid())
 }
 
-func (dax osDax) getUsernameByUserId(uid string) string {
+func (dax OsDax) GetUserNameByUserId(uid string) string {
 	user, err := user.LookupId(uid)
 	if err != nil {
 		return ""

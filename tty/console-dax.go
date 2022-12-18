@@ -5,14 +5,14 @@ import (
 	"github.com/sttk-go/sabi"
 )
 
-type consoleDax struct {
+type ConsoleDax struct {
 }
 
-func newConsoleDax() consoleDax {
-	return consoleDax{}
+func NewConsoleDax() ConsoleDax {
+	return ConsoleDax{}
 }
 
-func (dax consoleDax) PrintVersion() sabi.Err {
+func (dax ConsoleDax) PrintVersion() sabi.Err {
 	_, err := fmt.Print(`tty 1.0
 Copyright (C) 2022 sttk-go project.
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
@@ -27,7 +27,7 @@ Written by Takayuki Sato.
 	return sabi.Ok()
 }
 
-func (dax consoleDax) PrintHelp() sabi.Err {
+func (dax ConsoleDax) PrintHelp() sabi.Err {
 	_, err := fmt.Print(`Usage: tty [OPTION]...
 Print the file name of the terminal connected to standard input.
 
@@ -41,7 +41,7 @@ Print the file name of the terminal connected to standard input.
 	return sabi.Ok()
 }
 
-func (dax consoleDax) PrintTtyname(ttyname string) sabi.Err {
+func (dax ConsoleDax) PrintTtyName(ttyname string) sabi.Err {
 	_, err := fmt.Println(ttyname)
 	if err != nil {
 		return sabi.ErrBy(FailToPrint{})
@@ -49,15 +49,15 @@ func (dax consoleDax) PrintTtyname(ttyname string) sabi.Err {
 	return sabi.Ok()
 }
 
-func (dax consoleDax) PrintNotTty(err sabi.Err) {
+func (dax ConsoleDax) PrintNotTty(err sabi.Err) {
 	fmt.Println("not a tty")
 }
 
-func (dax consoleDax) PrintTtyError(err sabi.Err) {
+func (dax ConsoleDax) PrintTtyError(err sabi.Err) {
 	fmt.Println("tty: fail to get ttyname")
 }
 
-func (dax consoleDax) PrintModeError(err sabi.Err) {
+func (dax ConsoleDax) PrintModeError(err sabi.Err) {
 	fmt.Printf("tty: illegal option: %v\n", err.Get("Option"))
 	dax.PrintHelp()
 }

@@ -6,38 +6,25 @@ import (
 	"os"
 )
 
-type ttynameDax struct {
-	sabi.Dax
+type TtyNameDax struct {
+	lib.TtyDax
 }
 
-func newTtynameDax(base *sabi.ConnBase) ttynameDax {
-	return ttynameDax{Dax: base}
+func NewTtyNameDax() TtyNameDax {
+	return TtyNameDax{TtyDax: lib.NewTtyDax()}
 }
 
-func (dax ttynameDax) getTtyConn(name string) (*lib.TtyConn, sabi.Err) {
-	conn, err := dax.GetConn(name)
-	if !err.IsOk() {
-		return nil, err
-	}
-	return conn.(*lib.TtyConn), sabi.Ok()
-}
-
-func (dax ttynameDax) GetStdinTtyname() (string, sabi.Err) {
-	conn, err := dax.getTtyConn("ttyname")
-	if !err.IsOk() {
-		return "", err
-	}
-
-	var ttyname string
+func (dax TtyNameDax) GetStdinTtyName() (string, sabi.Err) {
 	fd := int(os.Stdin.Fd())
-	ttyname, err = conn.GetTtyname(fd)
+	ttyname, err := dax.GetTtyName(fd)
 
 	switch err.Reason().(type) {
-	case lib.FailToGetTtyname:
-		switch err.Reason().(lib.FailToGetTtyname).Errno {
+	case lib.FailToGetTtyName:
+		switch err.Reason().(lib.FailToGetTtyName).Errno {
 		case lib.ENOTTY:
 			return ttyname, sabi.ErrBy(StdinIsNotTty{})
 		}
 	}
+
 	return ttyname, err
 }

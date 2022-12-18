@@ -20,8 +20,8 @@ type /* error reasons */ (
 
 type TtyDax interface {
 	GetMode() (mode int, err sabi.Err)
-	GetStdinTtyname() (ttyname string, err sabi.Err)
-	PrintTtyname(ttyname string) sabi.Err
+	GetStdinTtyName() (ttyname string, err sabi.Err)
+	PrintTtyName(ttyname string) sabi.Err
 	PrintNotTty(err sabi.Err)
 	PrintTtyError(err sabi.Err)
 	PrintModeError(err sabi.Err)
@@ -29,7 +29,7 @@ type TtyDax interface {
 	PrintHelp() sabi.Err
 }
 
-func ttyLogic(dax TtyDax) sabi.Err {
+func TtyLogic(dax TtyDax) sabi.Err {
 	mode, err := dax.GetMode()
 	if !err.IsOk() {
 		dax.PrintModeError(err)
@@ -38,17 +38,20 @@ func ttyLogic(dax TtyDax) sabi.Err {
 
 	switch mode {
 	case MODE_SILENT:
-		_, err := dax.GetStdinTtyname()
+		_, err := dax.GetStdinTtyName()
 		return err
 
 	case MODE_NORMAL:
-		ttyname, err := dax.GetStdinTtyname()
+		ttyName, err := dax.GetStdinTtyName()
+
 		switch err.Reason().(type) {
 		case sabi.NoError:
-			return dax.PrintTtyname(ttyname)
+			return dax.PrintTtyName(ttyName)
+
 		case StdinIsNotTty:
 			dax.PrintNotTty(err)
 			return err
+
 		default:
 			dax.PrintTtyError(err)
 			return err
