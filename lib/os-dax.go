@@ -51,7 +51,7 @@ func (conn *OsDaxConn) GetTtyName(fd int) (string, sabi.Err) {
 	}
 
 	// errno = 9:EBADF | 19:ENODEV | 25:ENOTTY | 34:ERANGE
-	return "", sabi.ErrBy(FailToGetTtyName{Errno: errno})
+	return "", sabi.NewErr(FailToGetTtyName{Errno: errno})
 }
 
 type OsDax struct {

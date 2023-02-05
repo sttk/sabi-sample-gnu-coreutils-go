@@ -17,7 +17,7 @@ func newMapDax(m map[string]any) mapDax {
 func (dax mapDax) GetMode() (int, sabi.Err) {
 	switch dax.m["mode"].(int) {
 	case MODE_ERROR:
-		return MODE_ERROR, sabi.ErrBy(InvalidOption{Option: "--opt"})
+		return MODE_ERROR, sabi.NewErr(InvalidOption{Option: "--opt"})
 	default:
 		return dax.m["mode"].(int), sabi.Ok()
 	}
@@ -28,9 +28,9 @@ type TtyError struct{}
 func (dax mapDax) GetStdinTtyName() (string, sabi.Err) {
 	switch dax.m["error"] {
 	case "notty":
-		return "not a tty", sabi.ErrBy(StdinIsNotTty{})
+		return "not a tty", sabi.NewErr(StdinIsNotTty{})
 	case "ttyError":
-		return "tty error", sabi.ErrBy(TtyError{})
+		return "tty error", sabi.NewErr(TtyError{})
 	default:
 		return dax.m["ttyname"].(string), sabi.Ok()
 	}
@@ -38,7 +38,7 @@ func (dax mapDax) GetStdinTtyName() (string, sabi.Err) {
 
 func (dax mapDax) PrintTtyName(ttyname string) sabi.Err {
 	if dax.m["error"] == "failToPrint" {
-		return sabi.ErrBy(FailToPrint{})
+		return sabi.NewErr(FailToPrint{})
 	}
 	dax.m["print"] = ttyname
 	return sabi.Ok()
