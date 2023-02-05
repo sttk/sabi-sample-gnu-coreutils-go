@@ -5,6 +5,10 @@ This project is to develops sample implementations using sabi framework.
 This is a private project to verify usability of sabi framework for command line program, and this target platform is only macOS.
 
 
+## Supporting Go versions
+
+Programs in this project support Go 1.18 or later.
+
 ### Actual test results for each Go version:
 
 ```
