@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/sttk-go/sabi"
+	"github.com/sttk-go/sabi-sample-gnu-coreutils/lib"
 	"os"
 )
 
@@ -21,15 +22,19 @@ func main() {
 	}
 }
 
+func init() {
+	sabi.AddGlobalDaxSrc("os", lib.NewOsDaxSrc())
+}
+
 func newProc() sabi.Proc[TtyDax] {
 	base := sabi.NewDaxBase()
 	dax := struct {
 		ArgDax
-		TtyNameDax
+		OsUserDax
 		ConsoleDax
 	}{
 		ArgDax:     NewArgDax(),
-		TtyNameDax: NewTtyNameDax(),
+		OsUserDax:  NewOsUserDax(base),
 		ConsoleDax: NewConsoleDax(),
 	}
 	return sabi.NewProc[TtyDax](base, dax)
