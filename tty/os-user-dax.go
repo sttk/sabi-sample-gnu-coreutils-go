@@ -6,17 +6,22 @@ import (
 	"os"
 )
 
-type TtyNameDax struct {
-	lib.TtyDax
+type OsUserDax struct {
+	lib.OsDax
 }
 
-func NewTtyNameDax() TtyNameDax {
-	return TtyNameDax{TtyDax: lib.NewTtyDax()}
+func NewOsUserDax(dax sabi.Dax) OsUserDax {
+	return OsUserDax{OsDax: lib.NewOsDax(dax)}
 }
 
-func (dax TtyNameDax) GetStdinTtyName() (string, sabi.Err) {
+func (dax OsUserDax) GetStdinTtyName() (string, sabi.Err) {
+	conn, err := dax.GetOsDaxConn("os")
+	if !err.IsOk() {
+		return "", err
+	}
+
 	fd := int(os.Stdin.Fd())
-	ttyname, err := dax.GetTtyName(fd)
+	ttyname, err := conn.GetTtyName(fd)
 
 	switch err.Reason().(type) {
 	case lib.FailToGetTtyName:
