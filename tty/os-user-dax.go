@@ -27,7 +27,7 @@ func (dax OsUserDax) GetStdinTtyName() (string, sabi.Err) {
 	case lib.FailToGetTtyName:
 		switch err.Reason().(lib.FailToGetTtyName).Errno {
 		case lib.ENOTTY:
-			return ttyname, sabi.ErrBy(StdinIsNotTty{})
+			return ttyname, sabi.NewErr(StdinIsNotTty{})
 		}
 	}
 

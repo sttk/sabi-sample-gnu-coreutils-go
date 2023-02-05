@@ -22,7 +22,7 @@ There is NO WARRANTY, to the extent permitted by law.
 Written by Takayuki Sato.
 `)
 	if err != nil {
-		return sabi.ErrBy(FailToPrint{})
+		return sabi.NewErr(FailToPrint{})
 	}
 	return sabi.Ok()
 }
@@ -36,7 +36,7 @@ Print the file name of the terminal connected to standard input.
       --version     output version information and exit
 `)
 	if err != nil {
-		return sabi.ErrBy(FailToPrint{})
+		return sabi.NewErr(FailToPrint{})
 	}
 	return sabi.Ok()
 }
@@ -44,7 +44,7 @@ Print the file name of the terminal connected to standard input.
 func (dax ConsoleDax) PrintTtyName(ttyname string) sabi.Err {
 	_, err := fmt.Println(ttyname)
 	if err != nil {
-		return sabi.ErrBy(FailToPrint{})
+		return sabi.NewErr(FailToPrint{})
 	}
 	return sabi.Ok()
 }

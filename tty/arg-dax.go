@@ -33,7 +33,7 @@ func (dax ArgDax) GetMode() (int, sabi.Err) {
 
 		default:
 			mode = MODE_ERROR
-			err = sabi.ErrBy(InvalidOption{Option: arg})
+			err = sabi.NewErr(InvalidOption{Option: arg})
 		}
 	}
 
