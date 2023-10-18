@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/sttk-go/sabi"
+	"github.com/sttk/sabi/errs"
 )
 
 const (
@@ -11,25 +11,33 @@ const (
 	MODE_VERSION
 )
 
+type (
+	FailToPrint struct{}
+)
+
 type YesDax interface {
 	GetMode() int
 	GetWord() string
-	PrintYes()
-	PrintWord(word string)
+	PrintYes() errs.Err
+	PrintWord(word string) errs.Err
 	PrintVersion()
 	PrintHelp()
 }
 
-func YesLogic(dax YesDax) sabi.Err {
+func YesLogic(dax YesDax) errs.Err {
 	switch dax.GetMode() {
 	case MODE_NOWORD:
-		dax.PrintYes()
+		return dax.PrintYes()
+
 	case MODE_WORD:
-		dax.PrintWord(dax.GetWord())
+		return dax.PrintWord(dax.GetWord())
+
 	case MODE_VERSION:
 		dax.PrintVersion()
-	default:
+
+	default: // MODE_HELP
 		dax.PrintHelp()
 	}
-	return sabi.Ok()
+
+	return errs.Ok()
 }

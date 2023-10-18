@@ -6,11 +6,13 @@ package lib
 import "C"
 
 import (
-	"github.com/sttk-go/sabi"
 	"unsafe"
+
+	"github.com/sttk/sabi"
+	"github.com/sttk/sabi/errs"
 )
 
-type /* error reason */ (
+type (
 	FailToGetTtyName struct{ Errno int }
 )
 
@@ -21,25 +23,39 @@ func NewOsDaxSrc() OsDaxSrc {
 	return OsDaxSrc{}
 }
 
-func (ds OsDaxSrc) CreateDaxConn() (sabi.DaxConn, sabi.Err) {
-	return &OsDaxConn{}, sabi.Ok()
+func (ds OsDaxSrc) Setup(ag sabi.AsyncGroup) errs.Err {
+	return errs.Ok()
+}
+
+func (ds OsDaxSrc) Close() {
+}
+
+func (ds OsDaxSrc) CreateDaxConn() (sabi.DaxConn, errs.Err) {
+	return OsDaxConn{}, errs.Ok()
 }
 
 type OsDaxConn struct {
-	sabi.DaxConn
 }
 
-func (conn *OsDaxConn) Commit() sabi.Err {
-	return sabi.Ok()
+func (conn OsDaxConn) Commit(ag sabi.AsyncGroup) errs.Err {
+	return errs.Ok()
 }
 
-func (conn *OsDaxConn) Rollback() {
+func (conn OsDaxConn) IsCommitted() bool {
+	return true
 }
 
-func (conn *OsDaxConn) Close() {
+func (conn OsDaxConn) Rollback(ag sabi.AsyncGroup) {
+	// never be run because IsCommitted always returns true.
 }
 
-func (conn *OsDaxConn) GetTtyName(fd int) (string, sabi.Err) {
+func (conn OsDaxConn) ForceBack(ag sabi.AsyncGroup) {
+}
+
+func (conn OsDaxConn) Close() {
+}
+
+func (conn OsDaxConn) GetTtyName(fd int) (string, errs.Err) {
 	const BUF_SIZE int = 512
 
 	buf := (*C.char)(C.malloc(C.size_t(C.sizeof_char * BUF_SIZE)))
@@ -47,22 +63,9 @@ func (conn *OsDaxConn) GetTtyName(fd int) (string, sabi.Err) {
 
 	errno := int(C.ttyname_r(C.int(fd), buf, C.size_t(BUF_SIZE)))
 	if errno == 0 {
-		return C.GoString(buf), sabi.Ok()
+		return C.GoString(buf), errs.Ok()
 	}
 
 	// errno = 9:EBADF | 19:ENODEV | 25:ENOTTY | 34:ERANGE
-	return "", sabi.NewErr(FailToGetTtyName{Errno: errno})
-}
-
-type OsDax struct {
-	sabi.Dax
-}
-
-func NewOsDax(dax sabi.Dax) OsDax {
-	return OsDax{Dax: dax}
-}
-
-func (dax OsDax) GetOsDaxConn(name string) (*OsDaxConn, sabi.Err) {
-	conn, err := dax.GetDaxConn(name)
-	return conn.(*OsDaxConn), err
+	return "", errs.New(FailToGetTtyName{Errno: errno})
 }

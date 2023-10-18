@@ -1,69 +1,93 @@
 package lib_test
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/sttk-go/sabi"
-	"github.com/sttk-go/sabi-sample-gnu-coreutils/lib"
 	"os"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/sttk/sabi-sample-gnu-coreutils-go/lib"
+	"github.com/sttk/sabi/errs"
 )
+
+type noopAsyncGroup struct{}
+
+func (ag *noopAsyncGroup) Add(fn func() errs.Err) {}
 
 func TestNewOsDaxSrc(t *testing.T) {
 	ds := lib.NewOsDaxSrc()
 	assert.NotNil(t, ds)
+
+	// for coverage
+	ag := &noopAsyncGroup{}
+	assert.True(t, ds.Setup(ag).IsOk())
+	ds.Close()
 }
 
 func TestOsDaxSrc_CreateDaxConn(t *testing.T) {
 	ds := lib.NewOsDaxSrc()
 	conn, err := ds.CreateDaxConn()
 	assert.True(t, err.IsOk())
-	assert.NotNil(t, conn)
+	assert.IsType(t, conn, lib.OsDaxConn{})
+
+	// for coverage
+	ag := &noopAsyncGroup{}
+	assert.True(t, conn.Commit(ag).IsOk())
+	assert.True(t, conn.IsCommitted())
+	conn.Rollback(ag)
+	conn.ForceBack(ag)
+	conn.Close()
 }
 
-// On go test, OsDaxConn#GetTtyName(0) returns NOTTTY error.
+// On `go test`, OsDaxConn#GetTtyName(0/1/2) always returns NOTTY error.
 /*
 func TestOsDaxConn_GetTtyName(t *testing.T) {
   ds := lib.NewOsDaxSrc()
-	conn := ds.CreateDaxConn().(*lib.OsDaxConn)
+  dc, err := ds.CreateDaxConn()
+  assert.True(t, err.IsOk())
+  conn, ok := dc.(lib.OsDaxConn)
+  assert.True(t, ok)
 
-	fd := int(os.Stdin.Fd())
-	ttyname, err := conn.GetTtyName(fd)
-	t.Logf("ttyname(%v) = %v (%v)\n", fd, ttyname, err)
+  fd := int(os.Stdin.Fd())
+  ttyname, err := conn.GetTtyName(fd)
+  t.Logf("ttyname(%v) = %v (err=%v)\n", fd, ttyname, err)
 
-	assert.True(t, err.IsOk())
-	assert.Equal(t, ttyname[0:9], "/dev/ttys")
+  assert.True(t, err.IsOk())
+  assert.Equal(t, ttyname[0:9], "/dev/ttys")
 }
 */
 
 func TestOsDaxConn_GetTtyName_ENOTTY(t *testing.T) {
 	ds := lib.NewOsDaxSrc()
-	conn0, err := ds.CreateDaxConn()
+	dc, err := ds.CreateDaxConn()
 	assert.True(t, err.IsOk())
-
-	conn := conn0.(*lib.OsDaxConn)
+	conn, ok := dc.(lib.OsDaxConn)
+	assert.True(t, ok)
 
 	fd := int(os.Stdin.Fd())
-	ttyname, err := conn.GetTtyName(fd)
+	_, err = conn.GetTtyName(fd)
 
-	switch err.Reason().(type) {
+	switch r := err.Reason().(type) {
 	case lib.FailToGetTtyName:
-		assert.Equal(t, err.Get("Errno"), lib.ENOTTY)
-		assert.Equal(t, err.Reason().(lib.FailToGetTtyName).Errno, lib.ENOTTY)
+		assert.Equal(t, r.Errno, lib.ENOTTY)
 	default:
 		assert.Fail(t, err.Error())
 	}
-	t.Logf("ttyname(%v) = %v (%v)\n", fd, ttyname, err)
-
-	assert.Equal(t, ttyname, "")
 }
 
-func TestOsDax_GetOsDaxConn(t *testing.T) {
-	base := sabi.NewDaxBase()
-	base.AddLocalDaxSrc("os", lib.NewOsDaxSrc())
-
-	dax := lib.NewOsDax(base)
-	conn, err := dax.GetOsDaxConn("os")
+func TestOsDaxConn_GetTtyName_EBADF(t *testing.T) {
+	ds := lib.NewOsDaxSrc()
+	dc, err := ds.CreateDaxConn()
 	assert.True(t, err.IsOk())
-	assert.Equal(t, reflect.TypeOf(conn).Elem().Name(), "OsDaxConn")
+	conn, ok := dc.(lib.OsDaxConn)
+	assert.True(t, ok)
+
+	fd := 300
+	_, err = conn.GetTtyName(fd)
+
+	switch r := err.Reason().(type) {
+	case lib.FailToGetTtyName:
+		assert.Equal(t, r.Errno, lib.EBADF)
+	default:
+		assert.Fail(t, err.Error())
+	}
 }

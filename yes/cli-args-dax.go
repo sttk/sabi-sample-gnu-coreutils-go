@@ -4,14 +4,14 @@ import (
 	"os"
 )
 
-type ArgDax struct {
+type CliArgsDax struct {
 }
 
-func NewArgDax() ArgDax {
-	return ArgDax{}
+func NewCliArgsDax() CliArgsDax {
+	return CliArgsDax{}
 }
 
-func (dax ArgDax) GetMode() int {
+func (dax CliArgsDax) GetMode() int {
 	switch len(os.Args) {
 	case 1:
 		return MODE_NOWORD
@@ -28,6 +28,6 @@ func (dax ArgDax) GetMode() int {
 	}
 }
 
-func (dax ArgDax) GetWord() string {
+func (dax CliArgsDax) GetWord() string {
 	return os.Args[1]
 }

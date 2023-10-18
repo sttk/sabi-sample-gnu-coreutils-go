@@ -2,36 +2,31 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
+
+	"github.com/sttk/sabi/errs"
 )
 
 type ConsoleDax struct {
+	writer io.Writer
 }
 
 func NewConsoleDax() ConsoleDax {
-	return ConsoleDax{}
+	return ConsoleDax{writer: os.Stdout}
 }
 
 func (dax ConsoleDax) PrintUserName(userName string) {
-	fmt.Println(userName)
+	fmt.Fprintln(dax.writer, userName)
 }
 
-func (dax ConsoleDax) PrintVersion() {
-	fmt.Print(`whoami 1.0
-Copyright (C) 2022 sttk-go project.
-License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
-
-Written by Takayuki Sato.
-`)
-}
-
-func (dax ConsoleDax) PrintHelp() {
-	fmt.Print(`Usage: ./whoami [OPTION]...
-Print the user name associated with the current effective user ID.
-Same as id -un.
-
-      --help        display this help and exit
-      --version     output version information and exit
-`)
+func (dax ConsoleDax) PrintErr(err errs.Err) {
+	switch r := err.Reason().(type) {
+	case InvalidOption:
+		fmt.Fprintf(os.Stderr, "extra operand `%s'\nTry 'whoami --help' for more information.\n", r.Option)
+	case FailToGetUserName:
+		fmt.Fprintf(os.Stderr, "cannot find name for user ID %s", r.Uid)
+	default:
+		fmt.Fprintf(os.Stderr, err.Error())
+	}
 }

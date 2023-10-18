@@ -1,19 +1,26 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/sttk-go/sabi"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/sttk/sabi"
+	"github.com/sttk/sabi/errs"
 )
 
 type mapDax struct {
 	m map[string]any
 }
 
-func newTestProc(m map[string]any) sabi.Proc[YesDax] {
+func newMapDaxBase(m map[string]any) sabi.DaxBase {
 	base := sabi.NewDaxBase()
-	dax := mapDax{m: m}
-	return sabi.NewProc[YesDax](base, dax)
+	return struct {
+		sabi.DaxBase
+		mapDax
+	}{
+		DaxBase: base,
+		mapDax:  mapDax{m: m},
+	}
 }
 
 func (dax mapDax) GetMode() int {
@@ -24,12 +31,20 @@ func (dax mapDax) GetWord() string {
 	return dax.m["word"].(string)
 }
 
-func (dax mapDax) PrintYes() {
+func (dax mapDax) PrintYes() errs.Err {
+	if dax.m["error"] != nil {
+		return errs.New(FailToPrint{})
+	}
 	dax.m["print"] = "y"
+	return errs.Ok()
 }
 
-func (dax mapDax) PrintWord(word string) {
+func (dax mapDax) PrintWord(word string) errs.Err {
+	if dax.m["error"] != nil {
+		return errs.New(FailToPrint{})
+	}
 	dax.m["print"] = word
+	return errs.Ok()
 }
 
 func (dax mapDax) PrintVersion() {
@@ -40,43 +55,43 @@ func (dax mapDax) PrintHelp() {
 	dax.m["print"] = "HELP"
 }
 
-func TestYesLogic_mode_is_noword(t *testing.T) {
+func TestYes_YesLogic_modeIsNoWord(t *testing.T) {
 	m := make(map[string]any)
 	m["mode"] = MODE_NOWORD
 
-	proc := newTestProc(m)
-	proc.RunTxn(YesLogic)
+	base := newMapDaxBase(m)
+	assert.True(t, sabi.Txn(base, YesLogic).IsOk())
 
 	assert.Equal(t, m["print"], "y")
 }
 
-func TestYesLogic_mode_is_word(t *testing.T) {
+func TestYes_YesLogic_modeIsWord(t *testing.T) {
 	m := make(map[string]any)
 	m["mode"] = MODE_WORD
 	m["word"] = "hello"
 
-	proc := newTestProc(m)
-	proc.RunTxn(YesLogic)
+	dax := newMapDaxBase(m).(YesDax)
+	assert.True(t, YesLogic(dax).IsOk())
 
 	assert.Equal(t, m["print"], "hello")
 }
 
-func TestYesLogic_mode_is_version(t *testing.T) {
+func TestYes_YesLogic_modeIsVersion(t *testing.T) {
 	m := make(map[string]any)
 	m["mode"] = MODE_VERSION
 
-	proc := newTestProc(m)
-	proc.RunTxn(YesLogic)
+	dax := newMapDaxBase(m).(YesDax)
+	assert.True(t, YesLogic(dax).IsOk())
 
 	assert.Equal(t, m["print"], "VERSION")
 }
 
-func TestYesLogic_mode_is_help(t *testing.T) {
+func TestYes_YesLogic_modeIsHelp(t *testing.T) {
 	m := make(map[string]any)
 	m["mode"] = MODE_HELP
 
-	proc := newTestProc(m)
-	proc.RunTxn(YesLogic)
+	dax := newMapDaxBase(m).(YesDax)
+	assert.True(t, YesLogic(dax).IsOk())
 
 	assert.Equal(t, m["print"], "HELP")
 }
