@@ -1,24 +1,13 @@
 package main
 
 import (
-	"github.com/sttk-go/sabi"
+	"os"
+
+	"github.com/sttk/sabi"
 )
 
 func main() {
-	proc := newProc()
-	proc.RunTxn(WhoamiLogic)
-}
-
-func newProc() sabi.Proc[WhoamiDax] {
-	base := sabi.NewDaxBase()
-	dax := struct {
-		ArgDax
-		OsDax
-		ConsoleDax
-	}{
-		ArgDax:     NewArgDax(),
-		OsDax:      NewOsDax(),
-		ConsoleDax: NewConsoleDax(),
+	if sabi.StartApp(app).IsNotOk() {
+		os.Exit(1)
 	}
-	return sabi.NewProc[WhoamiDax](base, dax)
 }

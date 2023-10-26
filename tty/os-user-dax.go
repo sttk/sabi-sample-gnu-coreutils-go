@@ -1,35 +1,41 @@
 package main
 
 import (
-	"github.com/sttk-go/sabi"
-	"github.com/sttk-go/sabi-sample-gnu-coreutils/lib"
 	"os"
+
+	"github.com/sttk/sabi"
+	"github.com/sttk/sabi-sample-gnu-coreutils-go/lib"
+	"github.com/sttk/sabi/errs"
 )
 
 type OsUserDax struct {
-	lib.OsDax
+	sabi.Dax
 }
 
 func NewOsUserDax(dax sabi.Dax) OsUserDax {
-	return OsUserDax{OsDax: lib.NewOsDax(dax)}
+	return OsUserDax{Dax: dax}
 }
 
-func (dax OsUserDax) GetStdinTtyName() (string, sabi.Err) {
-	conn, err := dax.GetOsDaxConn("os")
-	if !err.IsOk() {
+func (dax OsUserDax) GetStdinTtyName() (string, errs.Err) {
+	conn, err := sabi.GetDaxConn[lib.OsDaxConn](dax, "os")
+	if err.IsNotOk() {
 		return "", err
 	}
 
 	fd := int(os.Stdin.Fd())
-	ttyname, err := conn.GetTtyName(fd)
+	ttynm, err := conn.GetTtyName(fd)
 
-	switch err.Reason().(type) {
+	if err.IsOk() {
+		return ttynm, err
+	}
+
+	switch r := err.Reason().(type) {
 	case lib.FailToGetTtyName:
-		switch err.Reason().(lib.FailToGetTtyName).Errno {
+		switch r.Errno {
 		case lib.ENOTTY:
-			return ttyname, sabi.NewErr(StdinIsNotTty{})
+			err = errs.New(StdinIsNotTty{}, err)
 		}
 	}
 
-	return ttyname, err
+	return "", err
 }

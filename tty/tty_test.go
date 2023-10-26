@@ -1,217 +1,159 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/sttk-go/sabi"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/sttk/sabi"
+	"github.com/sttk/sabi/errs"
 )
 
 type mapDax struct {
 	m map[string]any
 }
 
-func newMapDax(m map[string]any) mapDax {
-	return mapDax{m: m}
-}
-
-func (dax mapDax) GetMode() (int, sabi.Err) {
-	switch dax.m["mode"].(int) {
-	case MODE_ERROR:
-		return MODE_ERROR, sabi.NewErr(InvalidOption{Option: "--opt"})
-	default:
-		return dax.m["mode"].(int), sabi.Ok()
+func newMapDaxBase(m map[string]any) sabi.DaxBase {
+	base := sabi.NewDaxBase()
+	return struct {
+		sabi.DaxBase
+		mapDax
+	}{
+		DaxBase: base,
+		mapDax:  mapDax{m: m},
 	}
 }
 
-type TtyError struct{}
+func (dax mapDax) GetMode() (mode int, err errs.Err) {
+	e := dax.m["error"]
+	if e == "bad option" {
+		o := dax.m["option"].(string)
+		return MODE_NORMAL, errs.New(InvalidOption{Option: o})
+	}
+	return dax.m["mode"].(int), errs.Ok()
+}
 
-func (dax mapDax) GetStdinTtyName() (string, sabi.Err) {
+func (dax mapDax) GetStdinTtyName() (ttyName string, err errs.Err) {
 	switch dax.m["error"] {
 	case "notty":
-		return "not a tty", sabi.NewErr(StdinIsNotTty{})
-	case "ttyError":
-		return "tty error", sabi.NewErr(TtyError{})
+		ttyName = "not a tty"
+		err = errs.New(StdinIsNotTty{})
 	default:
-		return dax.m["ttyname"].(string), sabi.Ok()
+		ttyName = dax.m["ttyname"].(string)
+		err = errs.Ok()
 	}
+	return
 }
 
-func (dax mapDax) PrintTtyName(ttyname string) sabi.Err {
+func (dax mapDax) PrintTtyName(ttyName string) errs.Err {
 	if dax.m["error"] == "failToPrint" {
-		return sabi.NewErr(FailToPrint{})
+		return errs.New(FailToPrint{})
 	}
-	dax.m["print"] = ttyname
-	return sabi.Ok()
+	dax.m["print"] = ttyName
+	return errs.Ok()
 }
 
-func (dax mapDax) PrintNotTty(err sabi.Err) {
-	dax.m["print"] = err
+func (dax mapDax) PrintErr(err errs.Err) {
+	dax.m["print"] = err.Error()
 }
 
-func (dax mapDax) PrintTtyError(err sabi.Err) {
-	dax.m["print"] = err
-}
-
-func (dax mapDax) PrintModeError(err sabi.Err) {
-	dax.m["print"] = err
-}
-
-func (dax mapDax) PrintVersion() sabi.Err {
-	dax.m["print"] = "VERSION"
-	return sabi.Ok()
-}
-
-func (dax mapDax) PrintHelp() sabi.Err {
+func (dax mapDax) PrintHelp() {
 	dax.m["print"] = "HELP"
-	return sabi.Ok()
 }
 
-func newTestProc(m map[string]any) sabi.Proc[TtyDax] {
-	base := sabi.NewDaxBase()
-	dax := newMapDax(m)
-	return sabi.NewProc[TtyDax](base, dax)
+func (dax mapDax) PrintVersion() {
+	dax.m["print"] = "VERSION"
 }
 
-func TestTtyLogic_if_mode_is_version(t *testing.T) {
+func TestTty_TtyLogic_modeIsNormal(t *testing.T) {
 	m := make(map[string]any)
-	m["mode"] = MODE_VERSION
+	m["mode"] = MODE_NORMAL
+	m["ttyname"] = "abc"
+	dax := newMapDaxBase(m)
 
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
+	err := TtyLogic(dax.(TtyDax))
+	assert.True(t, err.IsOk())
 
-	assert.Equal(t, m["print"], "VERSION")
+	assert.Equal(t, m["print"], "abc")
+}
+
+func TestTty_TtyLogic_modeIsNormal_butStdinIsNotTty(t *testing.T) {
+	m := make(map[string]any)
+	m["mode"] = MODE_NORMAL
+	m["error"] = "notty"
+	dax := newMapDaxBase(m)
+
+	err := TtyLogic(dax.(TtyDax))
+	assert.Equal(t, m["print"], "{reason=StdinIsNotTty}")
+
+	switch err.Reason().(type) {
+	case StdinIsNotTty:
+	default:
+		assert.Fail(t, err.Error())
+	}
+}
+
+func TestTty_TtyLogic_modeIsSilent(t *testing.T) {
+	m := make(map[string]any)
+	m["mode"] = MODE_SILENT
+	m["ttyname"] = "abc"
+	dax := newMapDaxBase(m)
+
+	err := TtyLogic(dax.(TtyDax))
+	assert.Nil(t, m["print"])
+
 	assert.True(t, err.IsOk())
 }
 
-func TestTtyLogic_if_mode_is_help(t *testing.T) {
+func TestTty_TtyLogic_modeIsSilent_butStdinIsNotTty(t *testing.T) {
+	m := make(map[string]any)
+	m["mode"] = MODE_SILENT
+	m["error"] = "notty"
+	dax := newMapDaxBase(m)
+
+	err := TtyLogic(dax.(TtyDax))
+	assert.Nil(t, m["print"])
+
+	switch err.Reason().(type) {
+	case StdinIsNotTty:
+	default:
+		assert.Fail(t, err.Error())
+	}
+}
+
+func TestTty_TtyLogic_modeIsHelp(t *testing.T) {
 	m := make(map[string]any)
 	m["mode"] = MODE_HELP
+	dax := newMapDaxBase(m)
 
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
-
+	err := TtyLogic(dax.(TtyDax))
 	assert.Equal(t, m["print"], "HELP")
+
 	assert.True(t, err.IsOk())
 }
 
-func TestTtyLogic_if_mode_is_normal(t *testing.T) {
+func TestTty_TtyLogic_modeIsVersion(t *testing.T) {
 	m := make(map[string]any)
-	m["mode"] = MODE_NORMAL
-	m["ttyname"] = "/dev/tty001"
+	m["mode"] = MODE_VERSION
+	dax := newMapDaxBase(m)
 
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
+	err := TtyLogic(dax.(TtyDax))
+	assert.Equal(t, m["print"], "VERSION")
 
-	assert.Equal(t, m["print"], "/dev/tty001")
 	assert.True(t, err.IsOk())
 }
 
-func TestTtyLogic_if_mode_is_silent(t *testing.T) {
+func TestTty_TtyLogic_invalidOption(t *testing.T) {
 	m := make(map[string]any)
-	m["mode"] = MODE_SILENT
-	m["ttyname"] = "/dev/tty001"
+	m["error"] = "bad option"
+	m["option"] = "-x"
+	dax := newMapDaxBase(m)
 
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
+	err := TtyLogic(dax.(TtyDax))
+	assert.Equal(t, m["print"], "{reason=InvalidOption, Option=-x}")
 
-	assert.Nil(t, m["print"])
-	assert.True(t, err.IsOk())
-}
-
-func TestTtyLogic_if_mode_is_error(t *testing.T) {
-	m := make(map[string]any)
-	m["mode"] = MODE_ERROR
-
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
-
-	assert.Equal(t, m["print"], err)
 	switch err.Reason().(type) {
 	case InvalidOption:
-		assert.Equal(t, err.Get("Option"), "--opt")
-		assert.Equal(t, err.Reason().(InvalidOption).Option, "--opt")
 	default:
 		assert.Fail(t, err.Error())
-	}
-}
-
-func TestTtyLogic_if_mode_is_normal_but_notty(t *testing.T) {
-	m := make(map[string]any)
-	m["mode"] = MODE_NORMAL
-	m["error"] = "notty"
-
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
-
-	assert.Equal(t, m["print"], err)
-	switch err.Reason().(type) {
-	default:
-		assert.Fail(t, err.Error())
-	case StdinIsNotTty:
-	}
-}
-
-func TestTtyLogic_if_mode_is_silent_but_notty(t *testing.T) {
-	m := make(map[string]any)
-	m["mode"] = MODE_SILENT
-	m["error"] = "notty"
-
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
-
-	assert.Nil(t, m["print"])
-	switch err.Reason().(type) {
-	default:
-		assert.Fail(t, err.Error())
-	case StdinIsNotTty:
-	}
-}
-
-func TestTtyLogic_if_mode_is_normal_but_tty_error(t *testing.T) {
-	m := make(map[string]any)
-	m["mode"] = MODE_NORMAL
-	m["error"] = "ttyError"
-
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
-
-	assert.Equal(t, m["print"], err)
-	switch err.Reason().(type) {
-	default:
-		assert.Fail(t, err.Error())
-	case TtyError:
-	}
-}
-
-func TestTtyLogic_if_mode_is_silent_but_tty_error(t *testing.T) {
-	m := make(map[string]any)
-	m["mode"] = MODE_SILENT
-	m["error"] = "ttyError"
-
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
-
-	assert.Nil(t, m["print"])
-	switch err.Reason().(type) {
-	default:
-		assert.Fail(t, err.Error())
-	case TtyError:
-	}
-}
-
-func TestTtyLogic_if_mode_is_normal_but_fail_to_write(t *testing.T) {
-	m := make(map[string]any)
-	m["mode"] = MODE_NORMAL
-	m["ttyname"] = "/dev/tty001"
-	m["error"] = "failToPrint"
-
-	proc := newTestProc(m)
-	err := proc.RunTxn(TtyLogic)
-
-	assert.Nil(t, m["print"])
-	switch err.Reason().(type) {
-	default:
-		assert.Fail(t, err.Error())
-	case FailToPrint:
 	}
 }

@@ -1,4 +1,4 @@
-#OS generating files
+# OS generating files
 .DS_Store
 Thumbs.db
 
@@ -6,4 +6,4 @@ Thumbs.db
 bin/
 
 # Coverage
-coverage/
+coverage

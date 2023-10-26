@@ -1,38 +1,35 @@
 package main
 
 import (
-	"github.com/sttk-go/sabi"
+	"github.com/sttk/sabi/errs"
 )
 
 const (
-	MODE_ERROR = iota - 1
-	MODE_NORMAL
+	MODE_NORMAL = iota
 	MODE_SILENT
 	MODE_HELP
 	MODE_VERSION
 )
 
-type /* error reasons */ (
+type (
 	InvalidOption struct{ Option string }
 	StdinIsNotTty struct{}
 	FailToPrint   struct{}
 )
 
 type TtyDax interface {
-	GetMode() (mode int, err sabi.Err)
-	GetStdinTtyName() (ttyname string, err sabi.Err)
-	PrintTtyName(ttyname string) sabi.Err
-	PrintNotTty(err sabi.Err)
-	PrintTtyError(err sabi.Err)
-	PrintModeError(err sabi.Err)
-	PrintVersion() sabi.Err
-	PrintHelp() sabi.Err
+	GetMode() (mode int, err errs.Err)
+	GetStdinTtyName() (ttyName string, err errs.Err)
+	PrintTtyName(ttyName string) errs.Err
+	PrintErr(err errs.Err)
+	PrintHelp()
+	PrintVersion()
 }
 
-func TtyLogic(dax TtyDax) sabi.Err {
+func TtyLogic(dax TtyDax) errs.Err {
 	mode, err := dax.GetMode()
-	if !err.IsOk() {
-		dax.PrintModeError(err)
+	if err.IsNotOk() {
+		dax.PrintErr(err)
 		return err
 	}
 
@@ -42,25 +39,19 @@ func TtyLogic(dax TtyDax) sabi.Err {
 		return err
 
 	case MODE_NORMAL:
-		ttyName, err := dax.GetStdinTtyName()
-
-		switch err.Reason().(type) {
-		case sabi.NoError:
-			return dax.PrintTtyName(ttyName)
-
-		case StdinIsNotTty:
-			dax.PrintNotTty(err)
-			return err
-
-		default:
-			dax.PrintTtyError(err)
+		ttynm, err := dax.GetStdinTtyName()
+		if err.IsNotOk() {
+			dax.PrintErr(err)
 			return err
 		}
+		return dax.PrintTtyName(ttynm)
+
+	case MODE_HELP:
+		dax.PrintHelp()
 
 	case MODE_VERSION:
-		return dax.PrintVersion()
-
-	default: // MODE_HELP:
-		return dax.PrintHelp()
+		dax.PrintVersion()
 	}
+
+	return errs.Ok()
 }
